@@ -122,30 +122,57 @@ function thresholding2(input, output, filename) {
 function cellROI(input, output, filename, min, max){
 		print(input + filename);
     	open(input + filename);
-    	
+
+		// If a stack slipped through (multi-slice, multi-channel, or multi-frame input
+		// not flattened upstream), collapse to a single 2D image before particle
+		// analysis. For binary thresholded data Max-Intensity projection preserves the
+		// union of all positive pixels. Without this, Analyze Particles emits ROIs with
+		// slice labels like "c:2/2 z:1/16 - title" and the "/" chars then become path
+		// separators on Windows when saveAs builds the per-cell filename.
+		getDimensions(_w, _h, _channels, _slices, _frames);
+		if (_channels > 1 || _slices > 1 || _frames > 1) {
+			_pre_title = getTitle();
+			if (_channels > 1 || _frames > 1) {
+				run("Hyperstack to Stack");
+			}
+			run("Z Project...", "projection=[Max Intensity]");
+			close(_pre_title);
+			rename(_pre_title);
+		}
+
     	mainTitle=getTitle();
 		dirCropOutput=output;
-		
+
 	    run("ROI Manager...");
 	    roiManager("reset");
 	    Overlay.remove;
 		run("Set Measurements...", "area display redirect=None decimal=3");
 
 		run("Analyze Particles...", "pixel add");
-		roiManager("Measure");	
+		roiManager("Measure");
 		roiManager("Show All");
-		
+
 		if (nResults > 0) {
 			selectWindow("Results");
 			area = Table.getColumn("Area");
 			label = Table.getColumn("Label");
 			close("Results");
-			Array.print(area); 	
+			Array.print(area);
 			for (i = 0; i < area.length; i++) {
-		
+
 				if((min < area[i]) && (area[i] < max)){
 					label_temp = label[i];
+					// Sanitize all Windows path-illegal chars (<>:"/\|?*) so saveAs
+					// does not interpret them as path separators or fail outright.
 					label_temp = label_temp.replace(':','_');
+					label_temp = label_temp.replace('/','_');
+					label_temp = label_temp.replace('\\','_');
+					label_temp = label_temp.replace('<','_');
+					label_temp = label_temp.replace('>','_');
+					label_temp = label_temp.replace('"','_');
+					label_temp = label_temp.replace('|','_');
+					label_temp = label_temp.replace('?','_');
+					label_temp = label_temp.replace('*','_');
 					roiManager("Select", i);
 					run("Duplicate...", "title=" + label_temp);
 					setBackgroundColor(0, 0, 0);
