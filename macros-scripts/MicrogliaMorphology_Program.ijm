@@ -236,7 +236,8 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 		use_directory_creation = Dialog.getCheckbox();
 
 // STEP 1b. Determining single cell area range using test image
-		if (use_test_image == true) {
+		
+if (use_test_image == true) {
 			//use file browser to choose test image
 			path = File.openDialog("Open your test image");
 			open(path);
@@ -363,6 +364,14 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 	    //get file input directory here to be able to compare with the test image directory
 		subregion_dir=getDirectory("Choose parent folder containing original input images");
 		parent_directory = File.getDirectory(subregion_dir);
+		// Normalize: collapse trailing separators then re-add a single forward slash.
+		// On Windows root-of-drive inputs (e.g. D:\foo\), File.getDirectory can return
+		// "D://" which combined with "+/Foo/" produces leading "//" — Windows treats that
+		// as a UNC path and the open() call hangs trying to resolve a network host.
+		while (lengthOf(parent_directory) > 0 && (endsWith(parent_directory, "/") || endsWith(parent_directory, "\\"))) {
+			parent_directory = substring(parent_directory, 0, lengthOf(parent_directory) - 1);
+		}
+		parent_directory = parent_directory + "/";
 		subregion_input=Array.sort(getFileList(subregion_dir));
 		autocount=subregion_input.length;
 		
@@ -436,10 +445,10 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 		//use file browser to choose path and files to save output to
 		if (use_directory_creation) {
 			//create directory tree
-			output = parent_directory + "/ThresholdedImages/";
-			cellROI_output=parent_directory + "/SingleCells/";
-			skeleton_output=parent_directory + "/SkeletonResults/";
-			skeleton2_output=parent_directory + "/SkeletonImages/"; 
+			output = parent_directory + "ThresholdedImages/";
+			cellROI_output=parent_directory + "SingleCells/";
+			skeleton_output=parent_directory + "SkeletonResults/";
+			skeleton2_output=parent_directory + "SkeletonImages/";
 			File.makeDirectory(output);
 			File.makeDirectory(cellROI_output);
 			File.makeDirectory(skeleton_output);
@@ -513,12 +522,13 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 		}
 		
 		// SAVE AREA MEASURES
-		saveAs("Results", parent_directory + "/Areas.csv");
+		saveAs("Results", parent_directory + "Areas.csv");
 		close("Results");
 		
 		print("Thresholding finished");
 		
-		if (!use_batchmode) {
+
+		if (!use_batchmode) {
 // Progress message
 			Dialog.create("MicrogliaMorphology");
 			Dialog.addMessage("Now that we are done thresholding,");
@@ -526,7 +536,8 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 			Dialog.show();
 	
 // STEP 2. Generating single-cell ROIs command
-		
+
+		
 	  		//use file browser to choose path and files to run plugin on
 			setOption("JFileChooser",true);
 			File.setDefaultDir(output); //per default set it to the directory that was just output 
@@ -555,7 +566,8 @@ thresholding_parameters2 = newArray("Bernsen","Contrast","Mean","Median","MidGre
 			Dialog.addNumber("Start at Image:", startAt);
 			Dialog.addNumber("Stop at Image:", endAt);
 			Dialog.show();
-			
+		
+	
 			startAt=Dialog.getNumber();
 			endAt=Dialog.getNumber();
 			setBatchMode("show");
