@@ -8,9 +8,16 @@
 function thresholding(input, output, filename) {
 		print(input + filename);
 		open(input + filename);
-	
+
 		// MEASURE AREA
+		// If roichoice is set, the input carries a ROI as an Overlay (typical for .oir
+		// imports via Bio-Formats). Promote that Overlay to an active selection BEFORE
+		// Measure so Areas.csv records ROI area, not full-image area. Without this,
+		// every row of Areas.csv shows the same full-image value.
 		run("Set Measurements...", "area display redirect=None decimal=9");
+		if (roichoice && selectionType() == -1 && Overlay.size > 0) {
+			Overlay.activateSelection(0);
+		}
 		run("Measure");
 		
 		// THRESHOLD IMAGE AND CLEAN UP FOR DOWNSTREAM PROCESSING IN ANALYZESKELETON
@@ -64,9 +71,14 @@ function thresholding(input, output, filename) {
 function thresholding2(input, output, filename) {
 		print(input + filename);
 		open(input + filename);
-		
+
 		// MEASURE AREA
+		// See thresholding() for the rationale: promote Overlay to active selection
+		// before Measure when roichoice is set, so Areas.csv records ROI area.
 		run("Set Measurements...", "area display redirect=None decimal=9");
+		if (roichoice && selectionType() == -1 && Overlay.size > 0) {
+			Overlay.activateSelection(0);
+		}
 		run("Measure");
 	
 		// THRESHOLD IMAGE AND CLEAN UP FOR DOWNSTREAM PROCESSING IN ANALYZESKELETON
