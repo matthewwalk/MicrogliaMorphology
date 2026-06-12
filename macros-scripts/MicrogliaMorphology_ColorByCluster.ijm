@@ -115,7 +115,8 @@ skipped_files = newArray();
 		Cluster8 = Dialog.getString();
 		Cluster9 = Dialog.getString();
 		Cluster10 = Dialog.getString();
-		clusters = newArray(Cluster1, Cluster2, Cluster3, Cluster4, Cluster5, Cluster6, Cluster7, Cluster8, Cluster9, Cluster10);
+		
+clusters = newArray(Cluster1, Cluster2, Cluster3, Cluster4, Cluster5, Cluster6, Cluster7, Cluster8, Cluster9, Cluster10);
 		
 		// loop through original images
 		for(i=0; i<ColorByCluster_originalimages_count; i++){
